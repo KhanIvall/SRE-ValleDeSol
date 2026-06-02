@@ -14,11 +14,16 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: customer_services
-          uri: lb://CUSTOMER
+        - id: incidentes_service
+          uri: lb://INCIDENTES
           predicates:
-            - Path=/**
-          filters: 
+            - Path=/incidentes/**
+          filters:
             - AuthenticationFilterinig
-            #name: AuthenticationFilterinig
+        - id: recursos_service
+          uri: lb://RECURSOS
+          predicates:
+            - Path=/recursos/**
+          filters:
+            - AuthenticationFilterinig
           
