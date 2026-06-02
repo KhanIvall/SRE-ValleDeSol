@@ -16,5 +16,6 @@
         <module>springBootAdmin</module>
         <module>apigateway</module>
         <module>keycloakadapter</module>
+        <module>bff</module>
     </modules>
 </project>

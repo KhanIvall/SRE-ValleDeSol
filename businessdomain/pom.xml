@@ -12,6 +12,7 @@
     <modules>
         <module>incidentes</module>
         <module>recursos</module>
+        <module>zonasriesgo</module>
     </modules>
     <!--<properties>
         <spring-cloud-dependencies.version>2025.1.1</spring-cloud-dependencies.version>  

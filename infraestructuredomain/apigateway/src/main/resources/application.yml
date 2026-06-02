@@ -14,6 +14,12 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: bff_service
+          uri: lb://BFF
+          predicates:
+            - Path=/bff/**
+          filters:
+            - AuthenticationFilterinig
         - id: incidentes_service
           uri: lb://INCIDENTES
           predicates:
@@ -24,6 +30,12 @@ spring:
           uri: lb://RECURSOS
           predicates:
             - Path=/recursos/**
+          filters:
+            - AuthenticationFilterinig
+        - id: zonasriesgo_service
+          uri: lb://ZONASRIESGO
+          predicates:
+            - Path=/zonas-riesgo/**
           filters:
             - AuthenticationFilterinig
           
