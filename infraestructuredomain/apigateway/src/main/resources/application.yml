@@ -1,0 +1,41 @@
+server:
+  port: 8080
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty,http.client: DEBUG
+spring:
+  application:
+    name: apigateway
+  cloud:
+    gateway:
+      routes:
+        - id: bff_service
+          uri: lb://BFF
+          predicates:
+            - Path=/bff/**
+          filters:
+            - AuthenticationFilterinig
+        - id: incidentes_service
+          uri: lb://INCIDENTES
+          predicates:
+            - Path=/incidentes/**
+          filters:
+            - AuthenticationFilterinig
+        - id: recursos_service
+          uri: lb://RECURSOS
+          predicates:
+            - Path=/recursos/**
+          filters:
+            - AuthenticationFilterinig
+        - id: zonasriesgo_service
+          uri: lb://ZONASRIESGO
+          predicates:
+            - Path=/zonas-riesgo/**
+          filters:
+            - AuthenticationFilterinig
+          
