@@ -57,4 +57,30 @@ class RecursoServiceTest {
         assertEquals(42L, resultado.getIncidenteAsignadoId());
         verify(recursoRepository).save(recurso);
     }
+
+    @Test
+    void crear_sinNombre_lanzaExcepcion() {
+        Recurso recurso = new Recurso();
+        recurso.setTipo(TipoRecurso.BRIGADA);
+
+        assertThrows(BusinessRulesException.class, () -> recursoService.crear(recurso));
+    }
+
+    @Test
+    void liberar_recursoDesplegado_vuelveADisponible() throws BusinessRulesException {
+        Recurso recurso = new Recurso();
+        recurso.setId(2L);
+        recurso.setNombre("Vehiculo 01");
+        recurso.setTipo(TipoRecurso.VEHICULO);
+        recurso.setEstado(EstadoRecurso.DESPLEGADO);
+        recurso.setIncidenteAsignadoId(5L);
+
+        when(recursoRepository.findById(2L)).thenReturn(Optional.of(recurso));
+        when(recursoRepository.save(any(Recurso.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Recurso resultado = recursoService.liberar(2L);
+
+        assertEquals(EstadoRecurso.DISPONIBLE, resultado.getEstado());
+        assertEquals(null, resultado.getIncidenteAsignadoId());
+    }
 }
