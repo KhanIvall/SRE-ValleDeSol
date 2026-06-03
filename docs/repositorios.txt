@@ -1,0 +1,86 @@
+================================================================================
+PROYECTO: Sistema de Respuesta de Emergencias (SRE) - Municipalidad Valle del Sol
+ASIGNATURA: DSY1106 - Desarrollo Fullstack III
+EVALUACION: Parcial N°2 (EP2)
+VERSION: 1.0.0
+RAMA DE ENTREGA: main
+TAG (recomendado): v1.0.0-ep2
+================================================================================
+
+INTEGRANTES:
+- Ari Araya
+- Skarlett Tropan
+
+ORGANIZACION BENEFICIARIA:
+- Municipalidad Valle del Sol
+
+================================================================================
+REPOSITORIO PRINCIPAL (MONOREPO)
+================================================================================
+
+URL: https://github.com/KhanIvall/SRE-ValleDeSol
+
+Descripcion:
+Repositorio unificado que contiene el backend (microservicios, BFF, infraestructura),
+frontend NPM, arquetipos Maven y documentacion del encargo EP2.
+
+================================================================================
+CONTENIDO POR CARPETA / COMPONENTE
+================================================================================
+
+1. businessdomain/incidentes
+   Microservicio de gestion de incidentes.
+   Patron Factory Method para transiciones de estado.
+   Eureka: incidentes | API: /incidentes
+
+2. businessdomain/recursos
+   Microservicio de administracion logistica (brigadas, vehiculos, equipos).
+   Eureka: recursos | API: /recursos
+
+3. businessdomain/zonasriesgo
+   Microservicio analitico de zonas de riesgo territorial.
+   Patron Adapter para datos climaticos (FakeWeatherAdapter).
+   Eureka: zonasriesgo | API: /zonas-riesgo
+
+4. infraestructuredomain/bff
+   Backend For Frontend. Patron Facade + Circuit Breaker.
+   Agrega incidentes, recursos y zonas en un solo endpoint.
+   Eureka: bff | Puerto: 8085 | API: /bff/emergencias/{id}/resumen
+
+5. infraestructuredomain/apigateway
+   API Gateway (Spring Cloud Gateway). Enrutamiento y filtro JWT.
+   Puerto: 8080
+
+6. infraestructuredomain/eurekaServer
+   Service Discovery (Netflix Eureka). Puerto: 8761
+
+7. infraestructuredomain/keycloakadapter
+   Adaptador de autenticacion JWT / Keycloak.
+
+8. infraestructuredomain/springBootAdmin
+   Monitoreo de salud de microservicios.
+
+9. frontend/sre-ui
+   Paquete NPM @valledelsol/sre-ui (React + Vite).
+   Panel de emergencias que consume el BFF via API Gateway.
+
+10. archetypes/
+    Arquetipos Maven: sre-microservice-archetype, sre-bff-archetype.
+
+================================================================================
+PULL REQUESTS RELEVANTES (EVIDENCIA GIT)
+================================================================================
+
+- PR #1: develop -> main (backend SRE: microservicios, BFF, infra)
+- PR #2: feature/ep2-arquetipos-maven -> main (arquetipos Maven)
+- PR #3 (pendiente/merge): feature/ep2-readmes-tests -> main (READMEs y tests)
+
+================================================================================
+DOCUMENTACION FORMAL (CARPETA docs/)
+================================================================================
+
+- Analisis-Patrones-Arquetipos-SRE-EP2.md (exportar a PDF)
+- Plan-Branching-SRE-EP2.md (exportar a PDF)
+- repositorios.txt (este archivo)
+
+================================================================================
