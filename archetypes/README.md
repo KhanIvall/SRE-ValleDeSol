@@ -1,6 +1,6 @@
 # Arquetipos Maven — SRE Valle del Sol
 
-Arquetipos para estandarizar la creación de **microservicios** y módulos **BFF** alineados con el monorepo `sre-parent`.
+Arquetipos para estandarizar la creación de **microservicios** y módulos **BFF** alineados con el monorepo `sre-parent`. Cumplen el requisito EP2 de componentes backend basados en arquetipos Maven.
 
 ## Arquetipos disponibles
 
@@ -9,24 +9,41 @@ Arquetipos para estandarizar la creación de **microservicios** y módulos **BFF
 | `sre-microservice-archetype` | Spring Boot + JPA + Eureka + capas Controller/Service/Repository |
 | `sre-bff-archetype` | WebFlux + Eureka + WebClient + Resilience4j (Facade) |
 
+## Requisitos
+
+- JDK 17+, Maven 3.9+
+- Proyecto clonado en local (monorepo `SRE-ValleDeSol`)
+
 ## Instalación en el repositorio local
 
-Desde la raíz del proyecto:
+Desde la **raíz del monorepo**:
 
 ```bash
 mvn -pl archetypes install
 ```
 
-O solo un arquetipo:
+Instala ambos arquetipos en el repositorio Maven local (`~/.m2`). Solo es necesario una vez por máquina (o tras cambios en los arquetipos).
+
+Instalar un arquetipo individual:
 
 ```bash
 mvn -pl archetypes/sre-microservice-archetype install
 mvn -pl archetypes/sre-bff-archetype install
 ```
 
+## Verificación de la instalación
+
+```bash
+mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
+```
+
+Los arquetipos quedan bajo `com/valledelsol/sre/` en ese directorio.
+
 ## Generar un microservicio
 
 Ejecutar dentro de `businessdomain/`:
+
+**Windows (cmd/PowerShell):**
 
 ```bash
 cd businessdomain
@@ -43,7 +60,28 @@ mvn archetype:generate ^
   -DentityName=Alerta
 ```
 
-Luego agregar `<module>alertas</module>` en `businessdomain/pom.xml`.
+**Linux/macOS:**
+
+```bash
+cd businessdomain
+mvn archetype:generate \
+  -DarchetypeGroupId=com.valledelsol.sre \
+  -DarchetypeArtifactId=sre-microservice-archetype \
+  -DarchetypeVersion=1.0-SNAPSHOT \
+  -DgroupId=com.valledelsol.sre \
+  -DartifactId=alertas \
+  -Dversion=0.0.1-SNAPSHOT \
+  -Dpackage=com.valledelsol.alertas \
+  -DserviceName=alertas \
+  -DapplicationClass=AlertasApplication \
+  -DentityName=Alerta
+```
+
+Luego agregar `<module>alertas</module>` en `businessdomain/pom.xml` y ejecutar:
+
+```bash
+mvn -pl businessdomain/alertas spring-boot:run
+```
 
 ## Generar un BFF
 
@@ -96,4 +134,13 @@ src/main/java/.../
   exception/
 src/main/resources/application.properties
 pom.xml
+README.md
+```
+
+## Pruebas
+
+Los proyectos generados incluyen `*ApplicationTests`. Ejecutar desde el nuevo módulo:
+
+```bash
+mvn -pl businessdomain/<nuevo-modulo> test
 ```

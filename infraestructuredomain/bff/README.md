@@ -1,10 +1,45 @@
 # BFF — Backend For Frontend
 
-Agregador para el panel React. Patrón **Facade**: consulta en paralelo incidentes, recursos y zonas de riesgo y devuelve un DTO único.
+Agregador para el panel React. Patrón **Facade**: consulta en paralelo incidentes, recursos y zonas de riesgo y devuelve un DTO único al frontend.
 
-- **Eureka:** `bff`
-- **Puerto:** `8085`
-- **Resiliencia:** Resilience4j Circuit Breaker con fallback de contingencia
+| Atributo | Valor |
+|----------|-------|
+| **Eureka** | `BFF` |
+| **Puerto** | `8085` (fijo) |
+| **Base path** | `/bff` |
+| **Resiliencia** | Resilience4j Circuit Breaker con fallback de contingencia |
+
+## Patrones de diseño
+
+| Patrón | Ubicación | Problema que resuelve |
+|--------|-----------|------------------------|
+| **Facade** | `facade/EmergenciaFacadeService` | Un único punto de agregación para el cliente |
+| **Circuit Breaker** | Resilience4j en `obtenerResumen` | Degradación controlada si un microservicio falla |
+
+## Requisitos previos
+
+Antes de iniciar el BFF deben estar en ejecución:
+
+1. **Eureka** (8761)
+2. Microservicios registrados: `INCIDENTES`, `RECURSOS`, `ZONASRIESGO`
+
+## Instalación
+
+Desde la raíz del monorepo:
+
+```bash
+mvn -pl infraestructuredomain/bff compile
+```
+
+## Ejecución
+
+```bash
+mvn -pl infraestructuredomain/bff spring-boot:run
+```
+
+El proceso escucha en **http://localhost:8085**. Detener con `Ctrl+C`.
+
+> La raíz `http://localhost:8085/` no expone una página; es normal ver un error 404 ahí. Usa el endpoint documentado abajo.
 
 ## Endpoint principal
 
@@ -12,42 +47,43 @@ Agregador para el panel React. Patrón **Facade**: consulta en paralelo incident
 GET /bff/emergencias/{incidenteId}/resumen
 ```
 
-Respuesta: incidente + recursos asignados + zona de riesgo (si hay coordenadas) + flag `datosContingencia`.
+**Respuesta** (`EmergenciaResumenDto`):
 
-## Ejecución
+- `incidente` — datos del microservicio incidentes
+- `recursosAsignados` — lista de recursos del incidente
+- `zonaRiesgo` — zona que coincide con coordenadas del incidente (si existe)
+- `datosContingencia` — `true` si se activó el fallback del Circuit Breaker
 
-1. Eureka + microservicios `incidentes`, `recursos`, `zonasriesgo` en ejecución.
-2. Desde la raíz:
-
-```bash
-mvn -pl infraestructuredomain/bff spring-boot:run
-```
-
-3. Prueba directa (sin gateway):
+## Verificación
 
 ```bash
+# Requiere incidente con id=1 (ver README raíz o incidentes)
 curl http://localhost:8085/bff/emergencias/1/resumen
 ```
 
-4. Vía API Gateway (requiere JWT):
+Respuesta esperada: JSON con `incidente`, `recursosAsignados` y opcionalmente `zonaRiesgo`.
+
+## Integración con el frontend
+
+| Modo | Configuración en `frontend/sre-ui/.env` |
+|------|----------------------------------------|
+| **Desarrollo (recomendado)** | `VITE_API_BASE_URL=` vacío; proxy Vite → `http://localhost:8085` |
+| **Con API Gateway** | `VITE_API_BASE_URL=http://localhost:8080` + `VITE_AUTH_TOKEN=Bearer <token>` |
+
+El BFF resuelve microservicios por nombre en Eureka (`http://INCIDENTES/...`, `http://RECURSOS/...`, `http://ZONASRIESGO/...`).
+
+## Vía API Gateway (opcional)
 
 ```bash
 curl -H "Authorization: Bearer TOKEN" http://localhost:8080/bff/emergencias/1/resumen
 ```
 
-## Integración con el frontend
+Requiere gateway (8080) y token JWT válido.
 
-| Modo | Configuración |
-|------|----------------|
-| **Desarrollo (recomendado)** | `VITE_API_BASE_URL` vacío en `.env`; proxy Vite → `http://localhost:8085` |
-| **Con gateway** | `VITE_API_BASE_URL=http://localhost:8080` + `VITE_AUTH_TOKEN` |
-
-El BFF llama por Eureka a `INCIDENTES`, `RECURSOS` y `ZONASRIESGO`. Debe existir el incidente (crear con `POST /incidentes`).
-
-## Pruebas
+## Pruebas automatizadas
 
 ```bash
 mvn -pl infraestructuredomain/bff test
 ```
 
-Incluye `EmergenciaFacadeServiceTest` (fallback de contingencia).
+Incluye `EmergenciaFacadeServiceTest` (fallback de contingencia) y `BffApplicationTests`.
