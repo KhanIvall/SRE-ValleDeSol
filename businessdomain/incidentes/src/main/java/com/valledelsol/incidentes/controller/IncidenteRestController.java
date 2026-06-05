@@ -33,7 +33,7 @@ public class IncidenteRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Incidente> obtener(@PathVariable Long id) {
+    public ResponseEntity<Incidente> obtener(@PathVariable("id") Long id) {
         return incidenteService
                 .obtenerPorId(id)
                 .map(incidente -> ResponseEntity.ok(incidente))
@@ -46,20 +46,20 @@ public class IncidenteRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Incidente> actualizar(@PathVariable Long id, @RequestBody Incidente incidente)
+    public ResponseEntity<Incidente> actualizar(@PathVariable("id") Long id, @RequestBody Incidente incidente)
             throws BusinessRulesException {
         return ResponseEntity.ok(incidenteService.actualizar(id, incidente));
     }
 
     @PutMapping("/{id}/estado")
     public ResponseEntity<Incidente> cambiarEstado(
-            @PathVariable Long id, @RequestBody Map<String, String> body) throws BusinessRulesException {
+            @PathVariable("id") Long id, @RequestBody Map<String, String> body) throws BusinessRulesException {
         EstadoIncidente nuevoEstado = EstadoIncidente.valueOf(body.get("estado"));
         return ResponseEntity.ok(incidenteService.cambiarEstado(id, nuevoEstado));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable("id") Long id) {
         incidenteService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

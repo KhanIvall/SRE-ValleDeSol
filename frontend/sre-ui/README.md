@@ -26,12 +26,9 @@ npm install
 cp .env.example .env
 ```
 
-Edita `.env`:
+Copia `.env.example` a `.env`. Para desarrollo local **sin Keycloak**, deja `VITE_API_BASE_URL` vacío; el proxy de Vite envía `/bff` al BFF en el puerto **8085**.
 
-```env
-VITE_API_BASE_URL=http://localhost:8080
-VITE_AUTH_TOKEN=   # JWT si el gateway exige Authorization
-```
+Con API Gateway (8080), define `VITE_API_BASE_URL=http://localhost:8080` y un `VITE_AUTH_TOKEN` válido.
 
 ## Ejecutar en desarrollo
 
@@ -39,7 +36,7 @@ VITE_AUTH_TOKEN=   # JWT si el gateway exige Authorization
 npm run dev
 ```
 
-Abre http://localhost:5173 — el proxy de Vite reenvía `/bff` al gateway.
+Abre http://localhost:5173 — requiere Eureka, microservicios y BFF en ejecución.
 
 ## Build de la app
 

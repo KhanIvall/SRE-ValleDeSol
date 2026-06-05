@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/bff': {
-          target: 'http://localhost:8080',
+          target: 'http://localhost:8085',
           changeOrigin: true,
         },
       },

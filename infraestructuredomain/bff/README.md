@@ -29,11 +29,20 @@ mvn -pl infraestructuredomain/bff spring-boot:run
 curl http://localhost:8085/bff/emergencias/1/resumen
 ```
 
-4. Vía API Gateway:
+4. Vía API Gateway (requiere JWT):
 
 ```bash
-curl http://localhost:8080/bff/emergencias/1/resumen
+curl -H "Authorization: Bearer TOKEN" http://localhost:8080/bff/emergencias/1/resumen
 ```
+
+## Integración con el frontend
+
+| Modo | Configuración |
+|------|----------------|
+| **Desarrollo (recomendado)** | `VITE_API_BASE_URL` vacío en `.env`; proxy Vite → `http://localhost:8085` |
+| **Con gateway** | `VITE_API_BASE_URL=http://localhost:8080` + `VITE_AUTH_TOKEN` |
+
+El BFF llama por Eureka a `INCIDENTES`, `RECURSOS` y `ZONASRIESGO`. Debe existir el incidente (crear con `POST /incidentes`).
 
 ## Pruebas
 
