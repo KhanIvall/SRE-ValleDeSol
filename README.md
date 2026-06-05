@@ -13,7 +13,6 @@ Monorepo fullstack: microservicios Java/Spring Boot, BFF, API Gateway y frontend
 | `businessdomain/` | Microservicios: **incidentes**, **recursos**, **zonasriesgo** |
 | `infraestructuredomain/` | Eureka, API Gateway, **BFF**, Keycloak adapter, Spring Boot Admin |
 | `frontend/sre-ui/` | Panel React NPM (`@valledelsol/sre-ui`) |
-| `archetypes/` | Arquetipos Maven para nuevos microservicios y BFF |
 
 ## Requisitos previos
 
@@ -166,7 +165,6 @@ cd frontend/sre-ui && npm test
 | BFF | [bff/README.md](infraestructuredomain/bff/README.md) |
 | API Gateway | [apigateway/README.md](infraestructuredomain/apigateway/README.md) |
 | Frontend NPM | [frontend/sre-ui/README.md](frontend/sre-ui/README.md) |
-| Arquetipos Maven | [archetypes/README.md](archetypes/README.md) |
 
 ## Solución de problemas frecuentes
 
