@@ -51,6 +51,7 @@ cd frontend/sre-ui && npm test
 
 ## Documentación por componente
 
+- [eureka](infraestructuredomain/eurekaServer/README.md)
 - [incidentes](businessdomain/incidentes/README.md)
 - [recursos](businessdomain/recursos/README.md)
 - [zonasriesgo](businessdomain/zonasriesgo/README.md)
