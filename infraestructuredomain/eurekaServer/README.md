@@ -2,13 +2,29 @@
 
 Registro de servicios (service discovery) para el monorepo SRE. Los microservicios, BFF y gateway se registran aquí para resolverse por nombre (`INCIDENTES`, `RECURSOS`, `BFF`, etc.).
 
-- **Puerto:** `8761`
-- **Dashboard:** http://localhost:8761
-- **Nombre en Eureka:** `eurekaServer`
+| Atributo | Valor |
+|----------|-------|
+| **Puerto** | `8761` |
+| **Dashboard** | http://localhost:8761 |
+| **Nombre** | `eurekaServer` |
+
+## Rol en el sistema
+
+Eureka es el **primer componente** que debe arrancar en desarrollo local. Sin él, los microservicios y el BFF no pueden descubrirse entre sí.
+
+## Requisitos
+
+- JDK 17+, Maven 3.9+
+
+## Instalación
+
+```bash
+mvn -pl infraestructuredomain/eurekaServer compile
+```
 
 ## Ejecución
 
-Debe arrancar **antes** que el resto de servicios backend.
+Desde la **raíz del monorepo**:
 
 ```bash
 mvn -pl infraestructuredomain/eurekaServer spring-boot:run
@@ -16,20 +32,32 @@ mvn -pl infraestructuredomain/eurekaServer spring-boot:run
 
 El proceso queda activo en la terminal (no vuelve al prompt). Detener con `Ctrl+C`.
 
+## Verificación
+
+Abre http://localhost:8761 y revisa **Instances currently registered with Eureka** conforme levantes cada servicio.
+
+| Servicio | Cuándo aparece |
+|----------|----------------|
+| `INCIDENTES` | Tras `mvn -pl businessdomain/incidentes spring-boot:run` |
+| `RECURSOS` | Tras recursos |
+| `ZONASRIESGO` | Tras zonasriesgo |
+| `BFF` | Tras BFF (puerto 8085) |
+| `APIGATEWAY` | Tras gateway (opcional, puerto 8080) |
+
+Los microservicios de negocio muestran **puerto dinámico** en la columna Port del dashboard.
+
 ## Comportamiento esperado
 
 ### Solo Eureka levantado
 
 En el dashboard es normal ver:
 
-- **No instances available** — aún no hay microservicios registrados.
-- Aviso **EMERGENCY! EUREKA MAY BE INCORRECTLY...** — modo de autopreservación cuando no llegan renovaciones (heartbeats) de clientes. En desarrollo local, con un único nodo, **no indica fallo** del servidor.
+- **No instances available** — aún no hay clientes registrados.
+- Aviso **EMERGENCY! EUREKA MAY BE INCORRECTLY...** — autopreservación cuando no llegan heartbeats. En desarrollo local con un único nodo **no indica fallo** del servidor.
 
-Logs periódicos (`DiscoveryClient`, `response status is 200`, `evict task`) confirman que el servidor está en ejecución.
+### Stack completo (demo EP2)
 
-### Con el stack completo
-
-Tras levantar incidentes, recursos, zonasriesgo y BFF, en **Instances currently registered with Eureka** deberían aparecer esas aplicaciones (puertos dinámicos en los microservicios).
+Tras levantar incidentes, recursos, zonasriesgo y BFF, las cuatro aplicaciones deben figurar como `UP`.
 
 ## Configuración
 
@@ -38,8 +66,12 @@ Tras levantar incidentes, recursos, zonasriesgo y BFF, en **Instances currently 
 - `server.port=8761`
 - `eureka.client.register-with-eureka=false` — el servidor no se registra a sí mismo como cliente
 
-## Pruebas
+## Pruebas automatizadas
 
 ```bash
 mvn -pl infraestructuredomain/eurekaServer test
 ```
+
+## Siguiente paso
+
+Continúa con el [README raíz](../../README.md) — sección *Guía rápida: levantar el proyecto*.
