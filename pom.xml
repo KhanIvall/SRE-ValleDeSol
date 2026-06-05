@@ -8,7 +8,6 @@
     <modules>
         <module>businessdomain</module>
         <module>infraestructuredomain</module>
-        <module>archetypes</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
