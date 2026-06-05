@@ -19,7 +19,7 @@ public class EmergenciaBffController {
     }
 
     @GetMapping("/emergencias/{incidenteId}/resumen")
-    public Mono<EmergenciaResumenDto> resumen(@PathVariable Long incidenteId) {
+    public Mono<EmergenciaResumenDto> resumen(@PathVariable("incidenteId") Long incidenteId) {
         return emergenciaFacadeService.obtenerResumen(incidenteId);
     }
 }
