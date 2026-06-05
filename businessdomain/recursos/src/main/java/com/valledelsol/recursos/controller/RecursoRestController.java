@@ -37,12 +37,12 @@ public class RecursoRestController {
     }
 
     @GetMapping("/incidente/{incidenteId}")
-    public List<Recurso> listarPorIncidente(@PathVariable Long incidenteId) {
+    public List<Recurso> listarPorIncidente(@PathVariable("incidenteId") Long incidenteId) {
         return recursoService.listarPorIncidente(incidenteId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Recurso> obtener(@PathVariable Long id) {
+    public ResponseEntity<Recurso> obtener(@PathVariable("id") Long id) {
         return recursoService
                 .obtenerPorId(id)
                 .map(ResponseEntity::ok)
@@ -55,24 +55,24 @@ public class RecursoRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Recurso> actualizar(@PathVariable Long id, @RequestBody Recurso recurso)
+    public ResponseEntity<Recurso> actualizar(@PathVariable("id") Long id, @RequestBody Recurso recurso)
             throws BusinessRulesException {
         return ResponseEntity.ok(recursoService.actualizar(id, recurso));
     }
 
     @PutMapping("/{id}/asignar")
-    public ResponseEntity<Recurso> asignar(@PathVariable Long id, @RequestBody Map<String, Long> body)
+    public ResponseEntity<Recurso> asignar(@PathVariable("id") Long id, @RequestBody Map<String, Long> body)
             throws BusinessRulesException {
         return ResponseEntity.ok(recursoService.asignarAIncidente(id, body.get("incidenteId")));
     }
 
     @PutMapping("/{id}/liberar")
-    public ResponseEntity<Recurso> liberar(@PathVariable Long id) throws BusinessRulesException {
+    public ResponseEntity<Recurso> liberar(@PathVariable("id") Long id) throws BusinessRulesException {
         return ResponseEntity.ok(recursoService.liberar(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable("id") Long id) {
         recursoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

@@ -32,7 +32,7 @@ public class ZonaRiesgoRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ZonaRiesgo> obtener(@PathVariable Long id) {
+    public ResponseEntity<ZonaRiesgo> obtener(@PathVariable("id") Long id) {
         return zonaRiesgoService
                 .obtenerPorId(id)
                 .map(ResponseEntity::ok)
@@ -41,7 +41,7 @@ public class ZonaRiesgoRestController {
 
     @GetMapping("/coordenadas")
     public ResponseEntity<ZonaRiesgo> porCoordenadas(
-            @RequestParam double latitud, @RequestParam double longitud) {
+            @RequestParam("latitud") double latitud, @RequestParam("longitud") double longitud) {
         return zonaRiesgoService
                 .obtenerPorCoordenadas(latitud, longitud)
                 .map(ResponseEntity::ok)
@@ -54,18 +54,18 @@ public class ZonaRiesgoRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ZonaRiesgo> actualizar(@PathVariable Long id, @RequestBody ZonaRiesgo zona)
+    public ResponseEntity<ZonaRiesgo> actualizar(@PathVariable("id") Long id, @RequestBody ZonaRiesgo zona)
             throws BusinessRulesException {
         return ResponseEntity.ok(zonaRiesgoService.actualizar(id, zona));
     }
 
     @PutMapping("/{id}/recalibrar")
-    public ResponseEntity<ZonaRiesgo> recalibrar(@PathVariable Long id) throws BusinessRulesException {
+    public ResponseEntity<ZonaRiesgo> recalibrar(@PathVariable("id") Long id) throws BusinessRulesException {
         return ResponseEntity.ok(zonaRiesgoService.recalibrarRiesgo(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable("id") Long id) {
         zonaRiesgoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

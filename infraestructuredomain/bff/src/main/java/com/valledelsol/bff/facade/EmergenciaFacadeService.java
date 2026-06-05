@@ -8,9 +8,11 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -32,7 +34,11 @@ public class EmergenciaFacadeService {
         Mono<IncidenteDto> incidenteMono = client.get()
                 .uri("http://INCIDENTES/incidentes/{id}", incidenteId)
                 .retrieve()
-                .bodyToMono(IncidenteDto.class);
+                .bodyToMono(IncidenteDto.class)
+                .onErrorMap(
+                        WebClientResponseException.NotFound.class,
+                        ex -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Incidente no encontrado: " + incidenteId));
 
         Mono<List<RecursoDto>> recursosMono = client.get()
                 .uri("http://RECURSOS/recursos/incidente/{id}", incidenteId)
