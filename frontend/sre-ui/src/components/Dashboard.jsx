@@ -1,23 +1,27 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import { useAlert } from '../context/AlertContext.jsx';
 import { useEmergenciaResumen } from '../hooks/useEmergenciaResumen.js';
 import EmergenciaPanel from './emergencia/EmergenciaPanel.jsx';
 import ResumenDetalle from './emergencia/ResumenDetalle.jsx';
 import AlertBanner from './AlertBanner.jsx';
+import WeatherBar from './WeatherBar.jsx';
+import FocosActivos from './FocosActivos.jsx';
+import logo from '../assets/logo.svg';
 
 const MapaIncidentes = lazy(() => import('./mapa/MapaIncidentes.jsx'));
 
 const ESTADO_COLOR = {
   EN_PROGRESO: 'estado-progreso',
-  REPORTADO: 'estado-reportado',
-  CONTROLADO: 'estado-controlado',
-  CERRADO: 'estado-cerrado',
+  REPORTADO:   'estado-reportado',
+  CONTROLADO:  'estado-controlado',
+  CERRADO:     'estado-cerrado',
 };
 
 export default function Dashboard() {
-  const [incidenteId, setIncidenteId] = useState('');
-  const [historial, setHistorial] = useState([]);
+  const [incidenteId, setIncidenteId]   = useState('');
+  const [historial, setHistorial]       = useState([]);
   const [seleccionado, setSeleccionado] = useState(null);
+  const [windData, setWindData]         = useState({ windDir: null, windSpeed: null });
   const { data, loading, error, cargar, limpiar } = useEmergenciaResumen();
   const { publicar } = useAlert();
 
@@ -41,7 +45,7 @@ export default function Dashboard() {
     }
   }, [data, error, publicar]);
 
-  const seleccionarDesdeHistorial = async (id) => {
+  const seleccionarDesdeHistorial = useCallback(async (id) => {
     const local = historial.find((i) => i.incidenteId === id);
     if (local) {
       setSeleccionado(id);
@@ -49,7 +53,13 @@ export default function Dashboard() {
       setIncidenteId(String(id));
       await cargar(id);
     }
-  };
+  }, [historial, cargar]);
+
+  const handleWeatherUpdate = useCallback((wd) => {
+    setWindData((prev) =>
+      prev.windDir === wd.windDir && prev.windSpeed === wd.windSpeed ? prev : wd
+    );
+  }, []);
 
   const incidenteSeleccionado = historial.find((i) => i.incidenteId === seleccionado) ?? data;
 
@@ -62,7 +72,7 @@ export default function Dashboard() {
 
       <header className="app-header">
         <div className="header-brand">
-          <span className="header-icono" aria-hidden="true">🚒</span>
+          <img src={logo} alt="Logo SRE" className="header-icono" style={{ width: 52, height: 52 }} />
           <div>
             <p className="eyebrow">Cuerpo de Bomberos · Municipalidad Valle del Sol</p>
             <h1>SRE — Centro de operaciones</h1>
@@ -73,6 +83,8 @@ export default function Dashboard() {
           <span className="estado-texto">Sistema activo</span>
         </div>
       </header>
+
+      <WeatherBar onWeatherUpdate={handleWeatherUpdate} />
 
       <div className="stats-row">
         <div className="stat-card">
@@ -95,8 +107,11 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Panel de focos activos en tiempo real */}
+      <FocosActivos onSeleccionar={seleccionarDesdeHistorial} windDir={windData.windDir} />
+
       <form className="search-bar" onSubmit={handleConsultar}>
-        <label htmlFor="incidenteId">N° de incidente</label>
+        <label htmlFor="incidenteId">Buscar incidente por N°</label>
         <input
           id="incidenteId"
           type="number"
@@ -106,7 +121,7 @@ export default function Dashboard() {
           placeholder="Ej: 1"
         />
         <button type="submit" className="btn-buscar" disabled={loading}>
-          {loading ? 'Consultando…' : '🔍 Buscar incidente'}
+          {loading ? 'Consultando…' : '🔍 Buscar'}
         </button>
         <button
           type="button"
@@ -124,12 +139,19 @@ export default function Dashboard() {
         <section className="columna-mapa">
           <div className="seccion-titulo">
             <span aria-hidden="true">🗺️</span> Mapa de incidentes
+            {windData.windDir != null && (
+              <span className="leyenda-viento">
+                · Cono rojo = propagación estimada por viento
+              </span>
+            )}
           </div>
           <Suspense fallback={<div className="mapa-cargando">Cargando mapa…</div>}>
             <MapaIncidentes
               incidentes={historial}
               seleccionado={seleccionado}
               onSeleccionar={seleccionarDesdeHistorial}
+              windDir={windData.windDir}
+              windSpeed={windData.windSpeed}
             />
           </Suspense>
 
@@ -137,6 +159,7 @@ export default function Dashboard() {
             <span className="leyenda-item"><span className="dot-leyenda dot-rojo"></span> En progreso</span>
             <span className="leyenda-item"><span className="dot-leyenda dot-amarillo"></span> Reportado</span>
             <span className="leyenda-item"><span className="dot-leyenda dot-verde"></span> Controlado</span>
+            <span className="leyenda-item"><span className="dot-leyenda" style={{background:'rgba(226,75,74,0.4)',border:'1px dashed #e24b4a'}}></span> Propagación</span>
           </div>
         </section>
 
@@ -174,7 +197,7 @@ export default function Dashboard() {
           ) : (
             <div className="detalle-vacio">
               <span aria-hidden="true">🔎</span>
-              <p>Busca un incidente para ver su detalle y ubicarlo en el mapa</p>
+              <p>Busca un incidente o haz clic en un foco activo para ver su detalle</p>
             </div>
           )}
         </section>
