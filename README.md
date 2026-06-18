@@ -49,6 +49,17 @@ mvn test
 cd frontend/sre-ui && npm test
 ```
 
+## Documentación de Arquitectura SRE
+
+Documentación formal del encargo EV2 (Evaluación Parcial 2 — DSY1106):
+
+| Documento | Descripción |
+|-----------|-------------|
+| [Análisis de Patrones y Arquetipos](Analisis-Patrones-Arquetipos-SRE-EP2.md) | Patrones de diseño, arquetipos Maven, arquitectura BFF/microservicios y diagramas Mermaid |
+| [Plan de Branching](Plan-Branching-SRE-EP2.md) | Estrategia de ramas, convención de commits y políticas de merge (Pull Requests) |
+
+> Para la entrega en Blackboard, exportar cada documento a PDF según las instrucciones del encargo.
+
 ## Documentación por componente
 
 - [incidentes](businessdomain/incidentes/README.md)
