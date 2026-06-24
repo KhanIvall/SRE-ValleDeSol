@@ -7,7 +7,7 @@ Punto de entrada único (Spring Cloud Gateway). Enruta al BFF y microservicios r
 | **Puerto** | `8080` |
 | **Eureka** | `APIGATEWAY` |
 
-> **Desarrollo local del panel EP2:** el frontend puede conectarse **directamente al BFF (8085)** sin levantar el gateway. Este módulo es necesario para el flujo con autenticación JWT.
+> **Desarrollo local del panel EP2:** el resumen de emergencia puede consultarse **directamente al BFF (8085)** sin levantar el gateway. El panel de **focos activos** y el script `cargar-datos-prueba.ps1` sí requieren el gateway en `:8080`.
 
 ## Rutas configuradas
 
@@ -53,10 +53,13 @@ Obtener token desde el módulo `keycloakadapter` (puerto 8088) según la configu
 ```bash
 # Sin token — puede responder 401 si el filtro está habilitado
 curl http://localhost:8080/bff/emergencias/1/resumen
+curl http://localhost:8080/incidentes
 
 # Con token
 curl -H "Authorization: Bearer TOKEN" http://localhost:8080/bff/emergencias/1/resumen
 ```
+
+Carga masiva de datos demo: `.\cargar-datos-prueba.ps1` (desde la raíz del monorepo).
 
 ## Integración con el frontend
 
