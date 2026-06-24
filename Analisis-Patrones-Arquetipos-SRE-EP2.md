@@ -261,6 +261,12 @@ flowchart TB
         ZON["zonasriesgo<br/>Adapter + Repository"]
     end
 
+    subgraph persistencia["Persistencia JPA (H2 en memoria)"]
+        DB1[("H2 — incidentes")]
+        DB2[("H2 — recursos")]
+        DB3[("H2 — zonasriesgo")]
+    end
+
     subgraph infra["Infraestructura transversal"]
         EUR["Eureka Server :8761<br/>Service Discovery"]
         KC["Keycloak Adapter<br/>JWT opcional"]
@@ -271,6 +277,10 @@ flowchart TB
     BFF -->|"http://INCIDENTES"| INC
     BFF -->|"http://RECURSOS"| REC
     BFF -->|"http://ZONASRIESGO"| ZON
+    INC -->|JPA/Hibernate| DB1
+    REC -->|JPA/Hibernate| DB2
+    ZON -->|JPA/Hibernate| DB3
+    UI -.->|"dev: proxy Vite /bff"| BFF
     INC & REC & ZON & BFF & GW -.->|registro| EUR
     GW -.->|validación token| KC
 ```
@@ -744,29 +754,35 @@ flowchart LR
 
 | Módulo | Pruebas relevantes |
 |--------|-------------------|
-| `incidentes` | `EstadoIncidenteFactoryTest`, `IncidenteServiceTest` |
-| `zonasriesgo` | `FakeWeatherAdapterTest`, `ZonaRiesgoServiceTest` |
-| `bff` | `EmergenciaFacadeServiceTest` (fallback de contingencia) |
-| `sre-ui` | `useEmergenciaResumen.test.js`, `emergenciaApi.test.js` |
+| `incidentes` | `EstadoIncidenteFactoryTest`, `IncidenteServiceTest`, `IncidenteIntegrationTest`, `IncidenteE2ETest` |
+| `recursos` | `RecursoServiceTest`, `RecursoIntegrationTest`, `RecursoE2ETest` |
+| `zonasriesgo` | `FakeWeatherAdapterTest`, `ZonaRiesgoServiceTest`, `ZonaRiesgoIntegrationTest`, `ZonaRiesgoE2ETest` |
+| `bff` | `EmergenciaFacadeServiceTest`, `EmergenciaFacadeIntegrationTest`, `BffEmergenciaE2ETest` |
+| `sre-ui` | `emergenciaApi.test.js`, `useEmergenciaResumen.test.js`, `useIncidentesActivos.test.js`, `useWeather.test.js` |
 
 **Comandos de verificación:**
 
 ```bash
 # Backend (desde la raíz del monorepo)
-mvn test
+mvn test -pl businessdomain/incidentes,businessdomain/recursos,businessdomain/zonasriesgo,infraestructuredomain/bff -am
 
 # Frontend
-cd frontend/sre-ui && npm test
+cd frontend/sre-ui && npm run test:coverage
 ```
+
+Informe detallado: [docs/Informe-Pruebas-Unitarias-EP3.md](docs/Informe-Pruebas-Unitarias-EP3.md)
 
 ### 8.3 Cobertura de código
 
-| Ámbito | Herramienta sugerida | Resultado |
-|--------|---------------------|-----------|
-| Backend | JaCoCo (Maven) | [COMPLETAR: % cobertura] |
-| Frontend | Vitest + coverage | [COMPLETAR: % cobertura] |
+| Ámbito | Herramienta | Líneas | Instrucciones | Ramas |
+|--------|-------------|--------|---------------|-------|
+| `incidentes` | JaCoCo (Maven) | 74,5% | 71,3% | 46,2% |
+| `recursos` | JaCoCo (Maven) | 66,3% | 64,5% | 54,5% |
+| `zonasriesgo` | JaCoCo (Maven) | 87,0% | 86,2% | 56,7% |
+| `bff` | JaCoCo (Maven) | 97,3% | 98,2% | 75,0% |
+| `sre-ui` | Vitest + v8 | 80,1% | 80,1% | 71,8% |
 
-> Completar esta tabla antes de la defensa oral (Indicador 8 de la rúbrica).
+> Todos los componentes superan el **60% en líneas** exigido por la pauta EP3. Reportes HTML: `target/site/jacoco/index.html` (backend) y `frontend/sre-ui/coverage/index.html`.
 
 ---
 

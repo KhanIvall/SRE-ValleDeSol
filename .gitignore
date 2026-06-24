@@ -4,6 +4,7 @@ target/
 # Frontend NPM
 node_modules/
 dist/
+coverage/
 
 # Variables de entorno (no subir secretos)
 .env

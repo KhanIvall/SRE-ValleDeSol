@@ -170,16 +170,28 @@ La justificación detallada va en el PDF de análisis de patrones (entregable EP
 ## Pruebas automatizadas
 
 ```bash
-# Todo el backend
-mvn test
+# Backend (microservicios + BFF) con reporte JaCoCo
+mvn test -pl businessdomain/incidentes,businessdomain/recursos,businessdomain/zonasriesgo,infraestructuredomain/bff -am
 
 # Por módulo
 mvn -pl businessdomain/incidentes test
 mvn -pl infraestructuredomain/bff test
 
-# Frontend
-cd frontend/sre-ui && npm test
+# Frontend (Vitest + cobertura ≥60%)
+cd frontend/sre-ui
+npm install --legacy-peer-deps
+npm run test:coverage
 ```
+
+Reportes: `target/site/jacoco/index.html` por módulo Java; `frontend/sre-ui/coverage/index.html`.
+
+## Documentación EP3 (encargo)
+
+| Documento | Descripción |
+|-----------|-------------|
+| [Persistencia de datos](docs/Persistencia-SRE-EP3.md) | JPA, H2, entidades y evidencia en tests |
+| [Informe de pruebas unitarias](docs/Informe-Pruebas-Unitarias-EP3.md) | Cobertura, métricas y ejemplos por componente |
+| [repositorios.txt](repositorios.txt) | Enlaces GitHub y descripción del monorepo |
 
 ## Documentación de Arquitectura SRE
 

@@ -109,3 +109,7 @@ En Spring Boot 4, `@AutoConfigureWebTestClient` vive en el módulo `spring-boot-
 ```
 
 Sin esta dependencia, `mvn spring-boot:run` falla al compilar tests con error *package org.springframework.boot.test.autoconfigure.web.reactive does not exist*.
+
+### Cobertura JaCoCo
+
+Tras `mvn test`, revisa `target/site/jacoco/index.html`. Cobertura de referencia (EP3): **~97% líneas**.

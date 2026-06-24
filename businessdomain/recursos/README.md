@@ -98,3 +98,6 @@ El **BFF** consulta `GET /recursos/incidente/{id}` al armar el resumen de emerge
 ```bash
 mvn -pl businessdomain/recursos test
 ```
+
+Incluye `RecursoServiceTest`, `RecursoIntegrationTest` y `RecursoE2ETest`.  
+JaCoCo: `target/site/jacoco/index.html` (~**66%** líneas).

@@ -7,7 +7,7 @@ Núcleo de gestión de incidentes del SRE. Capas **Controller → Service → Re
 | **Eureka** | `INCIDENTES` |
 | **Base path** | `/incidentes` |
 | **Puerto** | Dinámico (`server.port=0`) |
-| **Persistencia** | H2 en memoria (se reinicia al detener el proceso) |
+| **Persistencia** | H2 en memoria (JPA) |
 
 ## Patrones de diseño
 
@@ -99,13 +99,25 @@ Para cargar múltiples incidentes con estados variados (demo del mapa y focos ac
 
 > **Nota:** Vía API Gateway (`8080`) las mismas rutas requieren header `Authorization: Bearer <token>` si el filtro JWT está activo.
 
+## Persistencia
+
+- **JPA + H2 en memoria** (`spring.jpa.hibernate.ddl-auto=update`)
+- Entidad `Incidente`, repositorio `IncidenteRepository`
+- Detalle: [docs/Persistencia-SRE-EP3.md](../../docs/Persistencia-SRE-EP3.md)
+
 ## Pruebas automatizadas
 
 ```bash
 mvn -pl businessdomain/incidentes test
 ```
 
-Incluye `EstadoIncidenteFactoryTest` e `IncidenteServiceTest`.
+| Tipo | Clases |
+|------|--------|
+| Unitarias | `EstadoIncidenteFactoryTest`, `IncidenteServiceTest` |
+| Integración | `IncidenteIntegrationTest` (persistencia H2) |
+| E2E | `IncidenteE2ETest` |
+
+Reporte JaCoCo: `target/site/jacoco/index.html` (~**74%** líneas).
 
 ## Relación con otros componentes
 

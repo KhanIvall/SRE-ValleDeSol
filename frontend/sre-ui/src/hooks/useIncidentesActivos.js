@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const API = 'http://localhost:8080/incidentes';
+const incidentesUrl = () => {
+  const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  return `${base.replace(/\/$/, '')}/incidentes`;
+};
 const INTERVAL_MS = 30_000;
 
 const PRIORIDAD = { EN_PROGRESO: 0, REPORTADO: 1, CONTROLADO: 2, CERRADO: 3 };
@@ -13,7 +16,7 @@ export function useIncidentesActivos() {
 
   const fetchActivos = useCallback(async () => {
     try {
-      const res = await fetch(API, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(incidentesUrl(), { signal: AbortSignal.timeout(5000) });
       if (!res.ok) throw new Error('no ok');
       const data = await res.json();
       const activos = (Array.isArray(data) ? data : data.content ?? [])

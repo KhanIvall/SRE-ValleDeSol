@@ -90,4 +90,5 @@ El **BFF** busca la zona con `GET /zonas-riesgo/coordenadas` usando latitud/long
 mvn -pl businessdomain/zonasriesgo test
 ```
 
-Incluye `FakeWeatherAdapterTest` y `ZonaRiesgoServiceTest`.
+Incluye `FakeWeatherAdapterTest`, `ZonaRiesgoServiceTest`, `ZonaRiesgoIntegrationTest` y `ZonaRiesgoE2ETest`.  
+JaCoCo: `target/site/jacoco/index.html` (~**87%** líneas).
