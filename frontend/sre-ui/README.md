@@ -1,34 +1,49 @@
 # @valledelsol/sre-ui
 
-Componentes frontend **NPM** (React + Vite) para el **Sistema de Respuesta de Emergencias (SRE)** — Municipalidad Valle del Sol.
+Componentes frontend **NPM** (React 19 + Vite 6) para el **Sistema de Respuesta de Emergencias (SRE)** — Municipalidad Valle del Sol.
 
-Consume el agregado del **BFF**: `GET /bff/emergencias/{id}/resumen`.
+Panel **centro de operaciones** con mapa interactivo, focos en tiempo real y consulta al agregado del **BFF**: `GET /bff/emergencias/{id}/resumen`.
+
+## Funcionalidades del panel
+
+| Sección | Descripción |
+|---------|-------------|
+| **Barra meteorológica** | Clima en tiempo real (Open-Meteo): temperatura, viento, calidad del aire y reloj local |
+| **Focos activos** | Lista de incidentes no cerrados, actualización cada 30 s, alerta sonora en nuevos `EN_PROGRESO` |
+| **Mapa Leaflet** | Marcadores por estado, círculos de riesgo por zona y conos de propagación según viento |
+| **Búsqueda por ID** | Consulta resumen BFF y acumula historial (hasta 10 incidentes) |
+| **Detalle** | `EmergenciaPanel` + `ResumenDetalle`: incidente, zona de riesgo, recursos y modo contingencia |
+| **Estadísticas** | Contadores por estado y recursos activos del historial de sesión |
 
 ## Patrones de diseño implementados
 
 | Patrón | Ubicación | Problema que resuelve |
 |--------|-----------|------------------------|
-| **Custom Hook** | `src/hooks/useEmergenciaResumen.js` | Reutilizar lógica de carga/errores sin duplicar en cada pantalla |
-| **Provider (Context)** | `src/context/AlertContext.jsx` | Alertas globales sin prop drilling |
-| **Compound Components** | `src/components/emergencia/EmergenciaPanel.jsx` | Componer UI del panel (`Header`, `Body`, `Footer`) de forma flexible |
-| **Facade** | `src/services/emergenciaApi.js` | Un único punto de acceso HTTP al BFF |
+| **Custom Hook** | `useEmergenciaResumen.js`, `useIncidentesActivos.js`, `useWeather.js` | Lógica reutilizable (resumen, polling, clima) |
+| **Provider (Context)** | `AlertContext.jsx` | Alertas globales sin prop drilling |
+| **Compound Components** | `EmergenciaPanel.jsx` | Componer UI (`Header`, `Body`, `Footer`) de forma flexible |
+| **Facade** | `emergenciaApi.js` | Un único punto de acceso HTTP al BFF |
 
 ## Requisitos
 
 - **Node.js** 18+
+- **Conexión a internet** (barra meteorológica vía Open-Meteo)
 - **Backend en ejecución** (orden recomendado):
   1. Eureka (8761)
   2. Microservicios: incidentes, recursos, zonasriesgo
   3. BFF (8085)
+  4. **API Gateway (8080)** — necesario para el panel de focos activos y el script `cargar-datos-prueba.ps1`
 
-El API Gateway (8080) es **opcional** en desarrollo local.
+El API Gateway es **opcional** si solo pruebas la búsqueda manual por ID de incidente.
 
 ## Instalación
 
 ```bash
 cd frontend/sre-ui
-npm install
+npm install --legacy-peer-deps
 ```
+
+> `react-leaflet@4` declara peer dependency en React 18; el proyecto usa React 19 — requiere `--legacy-peer-deps`.
 
 Copia el archivo de entorno:
 
@@ -40,20 +55,22 @@ copy .env.example .env
 
 ### Configuración `.env`
 
-**Desarrollo local (recomendado):**
+**Desarrollo local — resumen BFF (mínimo):**
 
 ```env
 VITE_API_BASE_URL=
 ```
 
-Con la URL vacía, las peticiones van a `/bff/...` y el **proxy de Vite** las reenvía a `http://localhost:8085`.
+Con la URL vacía, las peticiones a `/bff/...` pasan por el **proxy de Vite** hacia `http://localhost:8085`.
 
-**Con API Gateway y JWT:**
+**Con API Gateway** (focos activos + script de demo):
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080
-VITE_AUTH_TOKEN=Bearer TU_TOKEN_KEYCLOAK
+# VITE_AUTH_TOKEN=Bearer TU_TOKEN_KEYCLOAK   # solo si el filtro JWT está activo
 ```
+
+> El hook `useIncidentesActivos` consulta `http://localhost:8080/incidentes` directamente. Para ver focos en tiempo real, el gateway debe estar en ejecución.
 
 Reinicia `npm run dev` después de modificar `.env`.
 
@@ -67,11 +84,17 @@ Abre http://localhost:5173
 
 ### Probar el panel
 
-1. Asegúrate de tener datos de prueba en el backend (incidente id=1, zona y recurso opcionales). Ver [README raíz](../../README.md) — *Paso 5 — Datos de prueba*.
-2. Ingresa `1` en **ID de incidente**.
-3. Pulsa **Consultar resumen**.
+**Modo mínimo (solo BFF):**
 
-Deberías ver el incidente, zona de riesgo (si existe para esas coordenadas) y recursos asignados.
+1. Crea datos de prueba según [README raíz](../../README.md) — *Paso 5*.
+2. Ingresa `1` en **Buscar incidente por N°**.
+3. Pulsa **Buscar**.
+
+**Modo completo (mapa + focos):**
+
+1. Levanta el API Gateway (`8080`).
+2. Ejecuta `.\cargar-datos-prueba.ps1` desde la raíz del monorepo.
+3. Abre el panel: verás focos activos, mapa con conos y podrás hacer clic en un foco para ver su detalle.
 
 ## Build y preview
 
@@ -83,7 +106,7 @@ npm run preview
 ## Empaquetar como librería NPM
 
 ```bash
-npm run build -- --mode lib
+npm run build:lib
 ```
 
 Exporta desde `src/index.js`: `EmergenciaPanel`, `useEmergenciaResumen`, `AlertProvider`, etc.
@@ -94,16 +117,21 @@ Exporta desde `src/index.js`: `EmergenciaPanel`, `useEmergenciaResumen`, `AlertP
 npm test
 ```
 
-Ejecuta tests con Vitest (hook y servicio API).
+Ejecuta tests con Vitest (hook `useEmergenciaResumen` y servicio `emergenciaApi`).
 
 ## Estructura del código
 
 ```text
 src/
-  components/     # UI (Dashboard, EmergenciaPanel, …)
-  context/        # AlertProvider
-  hooks/          # useEmergenciaResumen
-  services/       # emergenciaApi (Facade)
+  components/
+    Dashboard.jsx          # Pantalla principal
+    FocosActivos.jsx       # Panel lateral de incidentes activos
+    WeatherBar.jsx         # Barra meteorológica
+    mapa/                  # MapaIncidentes, MarkerIncidente (Leaflet)
+    emergencia/            # EmergenciaPanel, ResumenDetalle
+  context/                 # AlertProvider
+  hooks/                   # useEmergenciaResumen, useIncidentesActivos, useWeather
+  services/                # emergenciaApi (Facade)
   styles/
 ```
 
@@ -121,6 +149,9 @@ import { AlertProvider, EmergenciaPanel, useEmergenciaResumen } from '@valledels
 
 | Síntoma | Solución |
 |---------|----------|
-| Error 500 al consultar | Verificar que Eureka, microservicios y BFF estén `UP`; crear incidente de prueba |
-| Error de red / CORS | Usar `VITE_API_BASE_URL` vacío y proxy a 8085; reiniciar `npm run dev` |
+| `npm install` falla (ERESOLVE) | Usar `npm install --legacy-peer-deps` |
+| Error 500 al consultar resumen | Verificar Eureka, microservicios y BFF `UP`; crear incidente de prueba |
+| Error de red / CORS en `/bff` | `VITE_API_BASE_URL` vacío y proxy a 8085; reiniciar `npm run dev` |
+| Focos activos “Backend sin conexión” | Levantar API Gateway en `:8080` |
 | Sin zona ni recursos | Normal si no cargaste datos; ver README raíz paso 5 |
+| Mapa sin conos de propagación | Requiere internet (Open-Meteo) y al menos un incidente `EN_PROGRESO` en el historial o focos |
