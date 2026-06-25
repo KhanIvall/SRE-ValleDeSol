@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const incidentesUrl = () => {
-  const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-  return `${base.replace(/\/$/, '')}/incidentes`;
-};
+const incidentesUrl = () => '/incidentes';
 const INTERVAL_MS = 30_000;
 
 const PRIORIDAD = { EN_PROGRESO: 0, REPORTADO: 1, CONTROLADO: 2, CERRADO: 3 };
