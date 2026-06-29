@@ -115,9 +115,17 @@ Exporta desde `src/index.js`: `EmergenciaPanel`, `useEmergenciaResumen`, `AlertP
 
 ```bash
 npm test
+npm run test:coverage
 ```
 
-Ejecuta tests con Vitest (hook `useEmergenciaResumen` y servicio `emergenciaApi`).
+| Archivo de test | Qué valida |
+|-----------------|------------|
+| `emergenciaApi.test.js` | Facade HTTP al BFF |
+| `useEmergenciaResumen.test.js` | Custom Hook de resumen |
+| `useIncidentesActivos.test.js` | Polling de focos activos |
+| `useWeather.test.js` | Barra meteorológica (mock fetch) |
+
+Reporte HTML: `coverage/index.html` tras `npm run test:coverage` (~**80%** líneas en hooks/services).
 
 ## Estructura del código
 
