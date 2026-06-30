@@ -1,34 +1,35 @@
-import { useCallback, useEffect, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAlert } from '../context/AlertContext.jsx';
 import { useEmergenciaResumen } from '../hooks/useEmergenciaResumen.js';
-import EmergenciaPanel from './emergencia/EmergenciaPanel.jsx';
-import ResumenDetalle from './emergencia/ResumenDetalle.jsx';
+import { useIncidentesActivos } from '../hooks/useIncidentesActivos.js';
 import AlertBanner from './AlertBanner.jsx';
-import WeatherBar from './WeatherBar.jsx';
+import EmergenciaPanel from './emergencia/EmergenciaPanel.jsx';
 import FocosActivos from './FocosActivos.jsx';
+import MapaIncidentes from './mapa/MapaIncidentes.jsx';
+import ResumenDetalle from './emergencia/ResumenDetalle.jsx';
+import WeatherBar from './WeatherBar.jsx';
 import logo from '../assets/logo.svg';
 
-const MapaIncidentes = lazy(() => import('./mapa/MapaIncidentes.jsx'));
-
-const ESTADO_COLOR = {
-  EN_PROGRESO: 'estado-progreso',
-  REPORTADO:   'estado-reportado',
-  CONTROLADO:  'estado-controlado',
-  CERRADO:     'estado-cerrado',
-};
-
 export default function Dashboard() {
-  const [incidenteId, setIncidenteId]   = useState('');
-  const [historial, setHistorial]       = useState([]);
-  const [seleccionado, setSeleccionado] = useState(null);
-  const [windData, setWindData]         = useState({ windDir: null, windSpeed: null });
+  const [incidenteId, setIncidenteId]     = useState('');
+  const [seleccionado, setSeleccionado]   = useState(null);
+  const [windData, setWindData]           = useState({ windDir: 0, windSpeed: 0 });
+
   const { data, loading, error, cargar, limpiar } = useEmergenciaResumen();
-  const { publicar } = useAlert();
+  const { incidentes, online }                     = useIncidentesActivos();
+  const { publicar }                               = useAlert();
+
+  const handleWeatherUpdate = useCallback((wd) => setWindData(wd), []);
 
   const handleConsultar = async (e) => {
     e.preventDefault();
     await cargar(incidenteId);
   };
+
+  const handleSeleccionar = useCallback((id) => {
+    setSeleccionado(id);
+    setIncidenteId(String(id));
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -36,172 +37,112 @@ export default function Dashboard() {
     } else if (data?.datosContingencia) {
       publicar('Resumen obtenido en modo contingencia', 'warning');
     } else if (data) {
-      publicar(`Incidente #${data.incidenteId} cargado`, 'success');
-      setSeleccionado(data.incidenteId);
-      setHistorial((prev) => {
-        const filtrado = prev.filter((i) => i.incidenteId !== data.incidenteId);
-        return [data, ...filtrado].slice(0, 10);
-      });
+      publicar(`Resumen del incidente #${data.incidenteId} cargado`, 'success');
     }
   }, [data, error, publicar]);
 
-  const seleccionarDesdeHistorial = useCallback(async (id) => {
-    const local = historial.find((i) => i.incidenteId === id);
-    if (local) {
-      setSeleccionado(id);
-    } else {
-      setIncidenteId(String(id));
-      await cargar(id);
-    }
-  }, [historial, cargar]);
-
-  const handleWeatherUpdate = useCallback((wd) => {
-    setWindData((prev) =>
-      prev.windDir === wd.windDir && prev.windSpeed === wd.windSpeed ? prev : wd
-    );
-  }, []);
-
-  const incidenteSeleccionado = historial.find((i) => i.incidenteId === seleccionado) ?? data;
-
-  const contadorEstado = (estado) =>
-    historial.filter((i) => i.incidente?.estado === estado).length;
+  const enProgreso  = incidentes.filter(i => i.estado === 'EN_PROGRESO').length;
+  const reportados  = incidentes.filter(i => i.estado === 'REPORTADO').length;
+  const controlados = incidentes.filter(i => i.estado === 'CONTROLADO').length;
 
   return (
-    <div className="dashboard">
-      <AlertBanner />
-
+    <div className="app-container">
       <header className="app-header">
-        <div className="header-brand">
-          <img src={logo} alt="Logo SRE" className="header-icono" style={{ width: 52, height: 52 }} />
+        <div className="header-izq">
+          <img src={logo} alt="Logo SRE" className="header-logo" />
           <div>
-            <p className="eyebrow">Cuerpo de Bomberos · Municipalidad Valle del Sol</p>
-            <h1>SRE — Centro de operaciones</h1>
+            <span className="eyebrow">Municipalidad Valle del Sol</span>
+            <h1>SRE — Panel de Emergencias</h1>
           </div>
         </div>
-        <div className="header-estado">
-          <span className="dot-activo" aria-hidden="true"></span>
-          <span className="estado-texto">Sistema activo</span>
-        </div>
+        <span className={`badge-online ${online ? 'online' : 'offline'}`}>
+          {online ? '● En línea' : '○ Sin conexión'}
+        </span>
       </header>
 
       <WeatherBar onWeatherUpdate={handleWeatherUpdate} />
 
+      <AlertBanner />
+
       <div className="stats-row">
-        <div className="stat-card">
-          <span className="stat-label">En progreso</span>
-          <span className="stat-val stat-rojo">{contadorEstado('EN_PROGRESO')}</span>
+        <div className="stat-card rojo">
+          <span className="stat-num">{enProgreso}</span>
+          <span className="stat-label">En Progreso</span>
         </div>
-        <div className="stat-card">
+        <div className="stat-card naranja">
+          <span className="stat-num">{reportados}</span>
           <span className="stat-label">Reportados</span>
-          <span className="stat-val stat-amarillo">{contadorEstado('REPORTADO')}</span>
         </div>
-        <div className="stat-card">
+        <div className="stat-card verde">
+          <span className="stat-num">{controlados}</span>
           <span className="stat-label">Controlados</span>
-          <span className="stat-val stat-verde">{contadorEstado('CONTROLADO')}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Recursos activos</span>
-          <span className="stat-val">
-            {historial.reduce((acc, i) => acc + (i.recursosAsignados?.length ?? 0), 0)}
-          </span>
+        <div className="stat-card azul">
+          <span className="stat-num">{incidentes.length}</span>
+          <span className="stat-label">Total</span>
         </div>
       </div>
 
-      {/* Panel de focos activos en tiempo real */}
-      <FocosActivos onSeleccionar={seleccionarDesdeHistorial} windDir={windData.windDir} />
-
-      <form className="search-bar" onSubmit={handleConsultar}>
-        <label htmlFor="incidenteId">Buscar incidente por N°</label>
-        <input
-          id="incidenteId"
-          type="number"
-          min="1"
-          value={incidenteId}
-          onChange={(e) => setIncidenteId(e.target.value)}
-          placeholder="Ej: 1"
-        />
-        <button type="submit" className="btn-buscar" disabled={loading}>
-          {loading ? 'Consultando…' : '🔍 Buscar'}
-        </button>
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={() => { limpiar(); setHistorial([]); setSeleccionado(null); }}
-        >
-          Limpiar
-        </button>
-      </form>
-
-      {error && <p className="inline-error">{error}</p>}
-
       <div className="layout-principal">
-
-        <section className="columna-mapa">
-          <div className="seccion-titulo">
-            <span aria-hidden="true">🗺️</span> Mapa de incidentes
-            {windData.windDir != null && (
-              <span className="leyenda-viento">
-                · Cono rojo = propagación estimada por viento
-              </span>
-            )}
-          </div>
-          <Suspense fallback={<div className="mapa-cargando">Cargando mapa…</div>}>
+        <div className="columna-mapa">
+          <FocosActivos
+            incidentes={incidentes}
+            online={online}
+            onSeleccionar={handleSeleccionar}
+          />
+          <div className="mapa-contenedor">
             <MapaIncidentes
-              incidentes={historial}
+              incidentes={incidentes}
               seleccionado={seleccionado}
-              onSeleccionar={seleccionarDesdeHistorial}
+              onSeleccionar={handleSeleccionar}
               windDir={windData.windDir}
               windSpeed={windData.windSpeed}
             />
-          </Suspense>
-
-          <div className="leyenda-mapa">
-            <span className="leyenda-item"><span className="dot-leyenda dot-rojo"></span> En progreso</span>
-            <span className="leyenda-item"><span className="dot-leyenda dot-amarillo"></span> Reportado</span>
-            <span className="leyenda-item"><span className="dot-leyenda dot-verde"></span> Controlado</span>
-            <span className="leyenda-item"><span className="dot-leyenda" style={{background:'rgba(226,75,74,0.4)',border:'1px dashed #e24b4a'}}></span> Propagación</span>
           </div>
-        </section>
+        </div>
 
-        <section className="columna-detalle">
-          {historial.length > 1 && (
-            <div className="historial-tabs">
-              {historial.map((inc) => (
-                <button
-                  key={inc.incidenteId}
-                  className={`tab-incidente ${inc.incidenteId === seleccionado ? 'tab-activo' : ''}`}
-                  onClick={() => setSeleccionado(inc.incidenteId)}
-                >
-                  #{inc.incidenteId}
-                  <span className={`tab-badge ${ESTADO_COLOR[inc.incidente?.estado] ?? ''}`}>
-                    {(inc.incidente?.estado ?? '').replace('_', ' ')}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="columna-detalle">
+          <form className="search-bar" onSubmit={handleConsultar}>
+            <label htmlFor="incidenteId">Consultar resumen BFF</label>
+            <input
+              id="incidenteId"
+              type="number"
+              min="1"
+              value={incidenteId}
+              onChange={(e) => setIncidenteId(e.target.value)}
+              placeholder="ID de incidente"
+            />
+            <button type="submit" disabled={loading}>
+              {loading ? 'Consultando…' : 'Consultar'}
+            </button>
+            <button type="button" className="btn-secondary" onClick={limpiar}>
+              Limpiar
+            </button>
+          </form>
 
-          {incidenteSeleccionado ? (
-            <EmergenciaPanel resumen={incidenteSeleccionado}>
+          {error && <p className="inline-error">{error}</p>}
+
+          {data && (
+            <EmergenciaPanel resumen={data}>
               <EmergenciaPanel.Header
-                title={`Incidente #${incidenteSeleccionado.incidenteId}`}
-                subtitle={`${incidenteSeleccionado.incidente?.tipo ?? ''} · ${(incidenteSeleccionado.incidente?.estado ?? '').replace('_', ' ')}`}
+                title={`Operación #${data.incidenteId}`}
+                subtitle="Datos agregados por el BFF"
               />
               <EmergenciaPanel.Body>
-                <ResumenDetalle resumen={incidenteSeleccionado} />
+                <ResumenDetalle resumen={data} />
               </EmergenciaPanel.Body>
               <EmergenciaPanel.Footer>
-                <small>GET /bff/emergencias/{incidenteSeleccionado.incidenteId}/resumen</small>
+                <small>GET /bff/emergencias/{data.incidenteId}/resumen</small>
               </EmergenciaPanel.Footer>
             </EmergenciaPanel>
-          ) : (
+          )}
+
+          {!data && (
             <div className="detalle-vacio">
-              <span aria-hidden="true">🔎</span>
-              <p>Busca un incidente o haz clic en un foco activo para ver su detalle</p>
+              <p>Haz clic en un incidente del mapa<br/>o ingresa un ID para ver el resumen BFF</p>
             </div>
           )}
-        </section>
-
+        </div>
       </div>
     </div>
   );

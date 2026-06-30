@@ -28,7 +28,7 @@ describe('useIncidentesActivos', () => {
     expect(result.current.incidentes).toHaveLength(1);
     expect(result.current.incidentes[0].id).toBe(1);
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8080/incidentes',
+      '/incidentes',
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
