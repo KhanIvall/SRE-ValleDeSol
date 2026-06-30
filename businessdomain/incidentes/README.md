@@ -7,7 +7,7 @@ Núcleo de gestión de incidentes del SRE. Capas **Controller → Service → Re
 | **Eureka** | `INCIDENTES` |
 | **Base path** | `/incidentes` |
 | **Puerto** | Dinámico (`server.port=0`) |
-| **Persistencia** | H2 en memoria (se reinicia al detener el proceso) |
+| **Persistencia** | H2 en memoria (JPA) |
 
 ## Patrones de diseño
 
@@ -62,6 +62,10 @@ http://localhost:PUERTO/swagger-ui.html
 | PUT | `/incidentes/{id}/estado` | Cambiar estado — body: `{"estado":"EN_PROGRESO"}` |
 | DELETE | `/incidentes/{id}` | Eliminar |
 
+### Tipos de incidente (ejemplos)
+
+Campo libre (`String`). Tipos usados en la demo: `INCENDIO`, `INCENDIO_FORESTAL`, `DERRUMBE`, `INUNDACION`.
+
 ### Estados válidos
 
 `REPORTADO`, `EN_PROGRESO`, `CONTROLADO`, `CERRADO`
@@ -91,7 +95,15 @@ curl -X POST http://localhost:PUERTO/incidentes \
 
 El incidente creado recibe `id: 1` si la base está vacía. Ese ID se usa en el panel y en el BFF (`/bff/emergencias/1/resumen`).
 
+Para cargar múltiples incidentes con estados variados (demo del mapa y focos activos), usa el script raíz `cargar-datos-prueba.ps1` vía API Gateway (`:8080`).
+
 > **Nota:** Vía API Gateway (`8080`) las mismas rutas requieren header `Authorization: Bearer <token>` si el filtro JWT está activo.
+
+## Persistencia
+
+- **JPA + H2 en memoria** (`spring.jpa.hibernate.ddl-auto=update`)
+- Entidad `Incidente`, repositorio `IncidenteRepository`
+- Detalle: [docs/Persistencia-SRE-EP3.md](../../docs/Persistencia-SRE-EP3.md)
 
 ## Pruebas automatizadas
 
@@ -99,7 +111,13 @@ El incidente creado recibe `id: 1` si la base está vacía. Ese ID se usa en el 
 mvn -pl businessdomain/incidentes test
 ```
 
-Incluye `EstadoIncidenteFactoryTest` e `IncidenteServiceTest`.
+| Tipo | Clases |
+|------|--------|
+| Unitarias | `EstadoIncidenteFactoryTest`, `IncidenteServiceTest` |
+| Integración | `IncidenteIntegrationTest` (persistencia H2) |
+| E2E | `IncidenteE2ETest` |
+
+Reporte JaCoCo: `target/site/jacoco/index.html` (~**74%** líneas).
 
 ## Relación con otros componentes
 

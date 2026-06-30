@@ -8,6 +8,7 @@ Agregador para el panel React. Patrón **Facade**: consulta en paralelo incident
 | **Puerto** | `8085` (fijo) |
 | **Base path** | `/bff` |
 | **Resiliencia** | Resilience4j Circuit Breaker con fallback de contingencia |
+| **Stack** | Spring Boot 4.0.3 (WebFlux + Eureka Client) |
 
 ## Patrones de diseño
 
@@ -86,4 +87,29 @@ Requiere gateway (8080) y token JWT válido.
 mvn -pl infraestructuredomain/bff test
 ```
 
-Incluye `EmergenciaFacadeServiceTest` (fallback de contingencia) y `BffApplicationTests`.
+Incluye:
+
+| Test | Qué valida |
+|------|------------|
+| `EmergenciaFacadeServiceTest` | Fallback de contingencia del Circuit Breaker |
+| `EmergenciaFacadeIntegrationTest` | Integración del facade con clientes simulados |
+| `BffEmergenciaE2ETest` | Endpoint REST `GET /bff/emergencias/{id}/resumen` con `WebTestClient` |
+| `BffApplicationTests` | Contexto Spring carga correctamente |
+
+### Spring Boot 4 — dependencia de test
+
+En Spring Boot 4, `@AutoConfigureWebTestClient` vive en el módulo `spring-boot-webtestclient` (paquete `org.springframework.boot.webtestclient.autoconfigure`). El `pom.xml` del BFF ya incluye:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-webtestclient</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+Sin esta dependencia, `mvn spring-boot:run` falla al compilar tests con error *package org.springframework.boot.test.autoconfigure.web.reactive does not exist*.
+
+### Cobertura JaCoCo
+
+Tras `mvn test`, revisa `target/site/jacoco/index.html`. Cobertura de referencia (EP3): **~97% líneas**.

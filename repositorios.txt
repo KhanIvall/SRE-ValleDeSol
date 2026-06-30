@@ -1,0 +1,81 @@
+================================================================================
+PROYECTO: Sistema de Respuesta de Emergencias (SRE) - Municipalidad Valle del Sol
+ASIGNATURA: DSY1106 - Desarrollo Fullstack III
+EVALUACION: Parcial N°3 (EP3)
+VERSION: 1.0.0
+RAMA DE ENTREGA: feature/ep3-entrega
+================================================================================
+
+INTEGRANTES:
+- Ari Araya
+- Skarlett Tropan
+
+ORGANIZACION BENEFICIARIA:
+- Municipalidad Valle del Sol
+
+================================================================================
+REPOSITORIO PRINCIPAL (MONOREPO)
+================================================================================
+
+URL: https://github.com/KhanIvall/SRE-ValleDeSol
+Rama de entrega EP3: feature/ep3-entrega
+Rama integracion: develop
+
+Descripcion:
+Monorepo unificado con backend (microservicios, BFF, Eureka, API Gateway),
+frontend NPM (@valledelsol/sre-ui) y documentacion EP2/EP3.
+
+================================================================================
+COMPONENTES (CARPETAS DEL MONOREPO)
+================================================================================
+
+1. businessdomain/incidentes
+   Microservicio de gestion de incidentes. Patron Factory Method + JPA/H2.
+   Eureka: INCIDENTES | API: /incidentes | Swagger: /swagger-ui.html
+
+2. businessdomain/recursos
+   Microservicio logistico (brigadas, vehiculos, equipos). JPA/H2.
+   Eureka: RECURSOS | API: /recursos
+
+3. businessdomain/zonasriesgo
+   Analisis territorial y clima (Adapter FakeWeather). JPA/H2.
+   Eureka: ZONASRIESGO | API: /zonas-riesgo
+
+4. infraestructuredomain/bff
+   Backend For Frontend. Facade + Circuit Breaker. Puerto 8085.
+   API: GET /bff/emergencias/{id}/resumen
+
+5. infraestructuredomain/apigateway
+   API Gateway Spring Cloud. Puerto 8080. Enruta BFF y microservicios.
+
+6. infraestructuredomain/eurekaServer
+   Service Discovery. Puerto 8761.
+
+7. frontend/sre-ui
+   Paquete NPM React + Vite. Panel centro de operaciones SRE.
+
+================================================================================
+DOCUMENTACION EP3 (EXPORTAR A PDF PARA BLACKBOARD)
+================================================================================
+
+- docs/Persistencia-SRE-EP3.md
+- docs/Informe-Pruebas-Unitarias-EP3.md
+- Analisis-Patrones-Arquetipos-SRE-EP2.md (diagramas Mermaid + cobertura)
+- Plan-Branching-SRE-EP2.md
+- README.md (guia de ejecucion)
+
+================================================================================
+PRUEBAS Y COBERTURA
+================================================================================
+
+Backend:
+  mvn test -pl businessdomain/incidentes,businessdomain/recursos,businessdomain/zonasriesgo,infraestructuredomain/bff -am
+  Reportes JaCoCo: <modulo>/target/site/jacoco/index.html
+
+Frontend:
+  cd frontend/sre-ui && npm run test:coverage
+  Reporte: frontend/sre-ui/coverage/index.html
+
+Cobertura minima EP3 (lineas): todos los componentes >= 60%
+
+================================================================================
