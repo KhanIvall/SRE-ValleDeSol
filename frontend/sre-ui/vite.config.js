@@ -37,6 +37,10 @@ export default defineConfig(({ mode }) => {
           target: 'http://localhost:8085',
           changeOrigin: true,
         },
+        '/incidentes': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+        },
       },
     },
   };
